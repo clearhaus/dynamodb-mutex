@@ -6,6 +6,7 @@ Gem::Specification.new do |gem|
   gem.name    = 'dynamodb-mutex'
   gem.version = DynamoDBMutex::VERSION
   gem.date    = Date.today.to_s
+  gem.license = "MIT"
 
   gem.summary = "Distributed mutex based on AWS DynamoDB"
   gem.description = "dynamodb-mutex implements a simple mutex that can be used to coordinate"

@@ -16,7 +16,6 @@ module DynamoDBMutex
       opts[:block]    ||= 1
       opts[:sleep]    ||= 0.1        
 
-      delete(name) if expired?(name, opts[:ttl])
       if create(name, opts)
         begin Timeout::timeout(opts[:ttl]) { return(yield) }
         ensure delete(name)
@@ -32,13 +31,14 @@ module DynamoDBMutex
         acquire_timeout = Time.now.to_i + opts[:block]
 
         while Time.now.to_i < acquire_timeout
+          delete(name) if expired?(name, opts[:ttl])
           begin
             table.items.put({:id => name, :created => Time.now.to_i},
               :unless_exists => :id)
-            logger.info "ACQUIRED LOCK #{name} by #{tpid}"
+            logger.info "ACQUIRED LOCK #{name} by #{pid}"
             return true
           rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
-            logger.info "Waiting for the #{name} ..."
+            logger.info "Waiting for the #{name} (pid=#{pid})..."
             sleep opts[:sleep]
           end
         end
@@ -48,11 +48,11 @@ module DynamoDBMutex
 
       def delete(name)
         table.items.at(name).delete
-        logger.info "RELEASED LOCK #{name} by #{tpid}"
+        logger.info "RELEASED LOCK #{name} by #{pid}"
       end
 
-      def tpid
-        Thread.current.object_id
+      def pid
+        Process.pid
       end
 
       def expired?(name, ttl)
@@ -69,6 +69,9 @@ module DynamoDBMutex
 
         begin
           @table = dynamo_db.tables[TABLE_NAME].load_schema
+        rescue AWS::DynamoDB::Errors::ResourceInUseException
+          logger.info "table named: #{TABLE_NAME} already exists"
+          retry
         rescue AWS::DynamoDB::Errors::ResourceNotFoundException
           @table = dynamo_db.tables.create(TABLE_NAME, 5, 5, {})
           sleep 1 unless @table.status == :active

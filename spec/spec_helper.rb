@@ -31,7 +31,7 @@ RSpec.configure do |config|
   config.after(:suite) do
     FakeDynamo::Storage.instance.shutdown
     dynamo_thread.exit if dynamo_thread
-    FileUtils.rm 'test.fdb'
+    FileUtils.rm('test.fdb', force: true)
   end
 
 end
