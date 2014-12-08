@@ -1,6 +1,9 @@
 language: ruby
+env:
+  AWS_REGION=ap-southeast-1
+  AWS_ACCESS_KEY_ID=xxx
+  AWS_SECRET_ACCESS_KEY=xxx
 rvm:
   - 1.9.3
   - 2.1.2
-
-script: 'bundle exec rake'
+script: 'bundle exec rspec'
