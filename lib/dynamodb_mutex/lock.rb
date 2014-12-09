@@ -11,7 +11,7 @@ module DynamoDBMutex
 
     TABLE_NAME = 'dynamodb-mutex'
 
-    def with_lock name, opts = {}
+    def with_lock name = 'default.lock', opts = {}
       opts[:ttl]      ||= 10  # seconds
       opts[:block]    ||= 1   # seconds
       opts[:sleep]    ||= 0.1 # seconds
