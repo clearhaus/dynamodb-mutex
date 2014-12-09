@@ -18,7 +18,7 @@ module DynamoDBMutex
 
       if create(name, opts)
         begin Timeout::timeout(opts[:stale_after]) { return(yield) }
-o       ensure delete(name)
+        ensure delete(name)
         end
       else
         raise LockError, "Unable to acquire #{name} after #{opts[:wait_for_other]} seconds"
