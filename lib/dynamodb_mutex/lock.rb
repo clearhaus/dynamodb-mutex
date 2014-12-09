@@ -83,8 +83,9 @@ o       ensure delete(name)
           retry
         rescue AWS::DynamoDB::Errors::ResourceNotFoundException
           logger.info "Creating table #{TABLE_NAME}"
-          @table = dynamo_db.tables.create(TABLE_NAME, 5, 5, {})
-          sleep 1 unless @table.status == :active
+          @table = dynamo_db.tables.create(TABLE_NAME, 5, 5)
+          sleep 1 while @table.status != :active
+          logger.info "Table #{TABLE_NAME} created"
         end
 
         @table
