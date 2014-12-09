@@ -15,14 +15,16 @@ Usage
        # Access to shared resource.
     end
 
-You can pass following options to ``with_lock``
+If no lock name (``:your_lock`` above) is given, ``#with_lock`` uses
+``'default.lock'``.
 
-.. code-block:: ruby
+You can pass ``with_lock`` the following options:
 
-    :block  => 1    # Specify in seconds how long you want to wait for the lock to be released. (default: 1)
-                    # It will raise DynamoDBMutex::LockError after block timeout
-    :sleep  => 0.1  # Specify in seconds how long the polling interval should be when :block is given.
-                    # It is NOT recommended to go below 0.01. (default: 0.1)
-    :ttl => 10      # Specify in seconds when the lock should be considered stale when something went wrong
-                    # with the one who held the lock and failed to unlock. (default: 10)
-
+* ``:wait_for_other`` (default ``1``):
+  Seconds to to wait for another process to release the lock.
+* ``:polling_interval`` (default ``0.1``):
+  Seconds between retrials to acquire lock. Should be at least
+  "``(:wait_for_other / 5) * (no_of_instances - 1)``".
+* ``:stale_after`` (default ``10``):
+  Seconds after which the lock is considered stale and will be automatically
+  deleted; set to "falsey" (``nil`` or ``false``) to disable.

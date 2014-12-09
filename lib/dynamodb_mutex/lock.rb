@@ -12,26 +12,26 @@ module DynamoDBMutex
     TABLE_NAME = 'dynamodb-mutex'
 
     def with_lock name = 'default.lock', opts = {}
-      opts[:ttl]      ||= 10  # seconds
-      opts[:block]    ||= 1   # seconds
-      opts[:sleep]    ||= 0.1 # seconds
+      opts[:stale_after]      ||= 10  # seconds
+      opts[:wait_for_other]   ||= 1   # seconds
+      opts[:polling_interval] ||= 0.1 # seconds
 
       if create(name, opts)
-        begin Timeout::timeout(opts[:ttl]) { return(yield) }
-        ensure delete(name)
+        begin Timeout::timeout(opts[:stale_after]) { return(yield) }
+o       ensure delete(name)
         end
       else
-        raise LockError, "Unable to hold #{name} after #{opts[:block]} seconds"
+        raise LockError, "Unable to acquire #{name} after #{opts[:wait_for_other]} seconds"
       end
     end
 
     private
 
       def create name, opts
-        acquire_timeout = Time.now.to_i + opts[:block]
+        acquire_timeout = Time.now.to_i + opts[:wait_for_other]
 
         while Time.now.to_i < acquire_timeout
-          delete(name) if expired?(name, opts[:ttl])
+          delete(name) if stale?(name, opts[:stale_after])
           begin
             table.items.put({:id => name, :created => Time.now.to_i},
               :unless_exists => :id)
@@ -39,7 +39,7 @@ module DynamoDBMutex
             return true
           rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
             logger.info "#{pid} is waiting for #{name}"
-            sleep opts[:sleep]
+            sleep opts[:polling_interval]
           end
         end
 
@@ -56,7 +56,9 @@ module DynamoDBMutex
         Process.pid
       end
 
-      def expired?(name, ttl)
+      def stale?(name, ttl)
+        return false unless ttl
+
         if lock_attributes = table.items.at(name).attributes.to_h(:consistent_read => true)
           if time_locked = lock_attributes["created"]
             time_locked < (Time.now.to_i - ttl)
