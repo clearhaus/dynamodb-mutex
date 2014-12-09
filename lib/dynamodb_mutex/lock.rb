@@ -53,7 +53,9 @@ o       ensure delete(name)
       end
 
       def pid
-        Process.pid
+        @hostname ||= Socket.gethostname
+
+        "#{@hostname}-#{Process.pid}"
       end
 
       def stale?(name, ttl)
