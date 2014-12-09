@@ -12,16 +12,16 @@ module DynamoDBMutex
     TABLE_NAME = 'dynamodb-mutex'
 
     def with_lock name, opts = {}
-      opts[:ttl]      ||= 10     
-      opts[:block]    ||= 1
-      opts[:sleep]    ||= 0.1        
+      opts[:ttl]      ||= 10  # seconds
+      opts[:block]    ||= 1   # seconds
+      opts[:sleep]    ||= 0.1 # seconds
 
       if create(name, opts)
         begin Timeout::timeout(opts[:ttl]) { return(yield) }
         ensure delete(name)
         end
       else
-        raise LockError, "Unable to hold #{name} after #{opts[:block]} ms"
+        raise LockError, "Unable to hold #{name} after #{opts[:block]} seconds"
       end
     end
 
