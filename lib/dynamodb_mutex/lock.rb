@@ -4,7 +4,7 @@ require_relative 'logging'
 module DynamoDBMutex
 
   LockError = Class.new(StandardError)
-  
+
   module Lock
     include Logging
     extend self
@@ -35,20 +35,21 @@ module DynamoDBMutex
           begin
             table.items.put({:id => name, :created => Time.now.to_i},
               :unless_exists => :id)
-            logger.info "ACQUIRED LOCK #{name} by #{pid}"
+            logger.info "#{pid} acquired #{name}"
             return true
           rescue AWS::DynamoDB::Errors::ConditionalCheckFailedException
-            logger.info "Waiting for the #{name} (pid=#{pid})..."
+            logger.info "#{pid} is waiting for #{name}"
             sleep opts[:sleep]
           end
         end
 
+        logger.warn "#{pid} failed to acquire #{name}"
         false
       end
 
       def delete(name)
         table.items.at(name).delete
-        logger.info "RELEASED LOCK #{name} by #{pid}"
+        logger.info "#{pid} released lock #{name}"
       end
 
       def pid
@@ -70,9 +71,10 @@ module DynamoDBMutex
         begin
           @table = dynamo_db.tables[TABLE_NAME].load_schema
         rescue AWS::DynamoDB::Errors::ResourceInUseException
-          logger.info "table named: #{TABLE_NAME} already exists"
+          logger.info "Table #{TABLE_NAME} already exists"
           retry
         rescue AWS::DynamoDB::Errors::ResourceNotFoundException
+          logger.info "Creating table #{TABLE_NAME}"
           @table = dynamo_db.tables.create(TABLE_NAME, 5, 5, {})
           sleep 1 unless @table.status == :active
         end
