@@ -73,9 +73,13 @@ o       ensure delete(name)
         dynamo_db = AWS::DynamoDB.new
 
         begin
+          tries ||= 10
           @table = dynamo_db.tables[TABLE_NAME].load_schema
         rescue AWS::DynamoDB::Errors::ResourceInUseException
-          logger.info "Table #{TABLE_NAME} already exists"
+          raise LockError, "Cannot load schema for table #{TABLE_NAME}" if (tries -= 1).zero?
+
+          logger.info "Could not load schema for table #{TABLE_NAME}; retrying"
+          sleep 1
           retry
         rescue AWS::DynamoDB::Errors::ResourceNotFoundException
           logger.info "Creating table #{TABLE_NAME}"
