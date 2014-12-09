@@ -57,9 +57,9 @@ module DynamoDBMutex
       end
 
       def expired?(name, ttl)
-        if l = table.items.at(name).attributes.to_h(:consistent_read => true)
-          if t = l["created"]
-            t < (Time.now.to_i - ttl)
+        if lock_attributes = table.items.at(name).attributes.to_h(:consistent_read => true)
+          if time_locked = lock_attributes["created"]
+            time_locked < (Time.now.to_i - ttl)
           end
         end
       end
