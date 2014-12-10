@@ -6,7 +6,10 @@ require 'aws-sdk'
 
 AWS.config(:use_ssl => false,
            :dynamo_db_endpoint => 'localhost',
-           :dynamo_db_port => 4567)
+           :dynamo_db_port => 4567,
+           :access_key_id => 'foo',
+           :secret_access_key => 'bar',
+          )
 
 require 'dynamodb-mutex'
 
