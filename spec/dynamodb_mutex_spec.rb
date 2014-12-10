@@ -1,8 +1,9 @@
 require 'spec_helper'
 
 describe DynamoDBMutex::Lock do
-  
+
   let(:locker) { DynamoDBMutex::Lock }
+  let(:lockname) { 'test.lock' }
 
   describe '#with_lock' do
 
@@ -15,7 +16,7 @@ describe DynamoDBMutex::Lock do
 
     it 'should execute block by default' do
       locked = false
-      locker.with_lock 'test.lock' do
+      locker.with_lock(lockname) do
         locked = true
       end
       expect(locked).to eq(true)
@@ -25,7 +26,7 @@ describe DynamoDBMutex::Lock do
       if pid1 = fork
         sleep(1)
         expect {
-          locker.with_lock('test.lock'){ sleep 1 }
+          locker.with_lock(lockname) { sleep(1) }
         }.to raise_error(DynamoDBMutex::LockError)
         Process.waitall
       else
@@ -36,9 +37,9 @@ describe DynamoDBMutex::Lock do
     it 'should expire lock if stale' do
       if pid1 = fork
         sleep(2)
-        locker.with_lock 'test.lock', block: 10 do
+        locker.with_lock(lockname, wait_for_other: 10) do
           expect(locker).to receive(:delete).with('test.lock')
-        end 
+        end
         Process.waitall
       else
         run(1, 5)
