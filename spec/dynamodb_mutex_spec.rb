@@ -7,7 +7,7 @@ describe DynamoDBMutex::Lock do
 
   describe '#with_lock' do
 
-    def run(id, seconds)
+    def run_for(seconds)
       locker.with_lock(lockname) do
         sleep(seconds)
       end
@@ -21,27 +21,35 @@ describe DynamoDBMutex::Lock do
       expect(locked).to eq(true)
     end
 
-    it 'should raise error after block timeout' do
-      if pid1 = fork
+    it 'should raise error after :wait_for_other timeout' do
+      begin
+        fork { run_for(2) }
+
         sleep(1)
+
         expect {
-          locker.with_lock(lockname) { sleep(1) }
+          locker.with_lock(lockname, wait_for_other: 0.1) { return }
         }.to raise_error(DynamoDBMutex::LockError)
+
+      ensure
         Process.waitall
-      else
-        run(1, 5)
       end
     end
 
     it 'should expire lock if stale' do
-      if pid1 = fork
-        sleep(2)
-        locker.with_lock(lockname, wait_for_other: 10) do
-          expect(locker).to receive(:delete).with('test.lock')
+      begin
+        fork { run_for(2) }
+
+        sleep(1)
+
+        stale_after = 1
+
+        locker.with_lock(lockname, stale_after: stale_after, wait_for_other: stale_after+1) do
+          expect(locker).to receive(:delete).with(lockname)
         end
+
+      ensure
         Process.waitall
-      else
-        run(1, 5)
       end
     end
 
