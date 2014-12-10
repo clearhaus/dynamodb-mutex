@@ -36,15 +36,25 @@ describe DynamoDBMutex::Lock do
       end
     end
 
-    it 'should expire lock if stale' do
+    it 'should delete lock if stale' do
       begin
-        fork { run_for(2) }
+        stale_after = 0
+        reader, writer = IO.pipe
 
-        sleep(1)
+        fork do
+          locker.with_lock(lockname) do
+            # Notify that I acquired the lock.
+            reader.close
+            writer.puts()
+            sleep(stale_after+1)
+          end
+        end
 
-        stale_after = 1
+        # Wait for notification that child acquired lock.
+        writer.close
+        reader.gets
 
-        locker.with_lock(lockname, stale_after: stale_after, wait_for_other: stale_after+1) do
+        locker.with_lock(lockname, stale_after: stale_after, wait_for_other: stale_after+0.5) do
           expect(locker).to receive(:delete).with(lockname)
         end
 
