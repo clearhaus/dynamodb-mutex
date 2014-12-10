@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 
+require 'date'
 require File.expand_path("../lib/dynamodb_mutex/version", __FILE__)
 
 Gem::Specification.new do |gem|
@@ -9,7 +10,7 @@ Gem::Specification.new do |gem|
   gem.license = "MIT"
 
   gem.summary = "Distributed mutex based on AWS DynamoDB"
-  gem.description = "dynamodb-mutex implements a simple mutex that can be used to coordinate"
+  gem.description = "dynamodb-mutex implements a simple mutex that can be used to coordinate" +
                      "access to shared data from multiple concurrent hosts"
 
   gem.authors  = ['Dinesh Yadav']
