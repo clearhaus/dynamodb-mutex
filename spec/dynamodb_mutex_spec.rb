@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'ostruct'
 
 describe DynamoDBMutex::Lock do
 
@@ -6,60 +7,69 @@ describe DynamoDBMutex::Lock do
   let(:lockname) { 'test.lock' }
 
   describe '#with_lock' do
-
-    def run_for(seconds)
-      locker.with_lock(lockname) do
-        sleep(seconds)
-      end
-    end
-
-    it 'should execute block by default' do
+    it 'executes block' do
       locked = false
       locker.with_lock(lockname) do
         locked = true
       end
       expect(locked).to eq(true)
     end
+  end
 
-    it 'should raise error after :wait_for_other timeout' do
-      begin
-        fork { run_for(2) }
+  describe '#with_lock', pipe: true do
+    before(:example) do
+      @notify = Class.new do
+        def initialize
+          @reader, @writer = IO.pipe
+        end
 
-        sleep(1)
+        def poke
+          @reader.close
+          @writer.write "\n"
+        end
 
-        expect {
-          locker.with_lock(lockname, wait_for_other: 0.1) { return }
-        }.to raise_error(DynamoDBMutex::LockError)
+        def wait
+          @writer.close
+          @reader.gets
+        end
+      end.new
+    end
 
-      ensure
-        Process.waitall
+    def run_infinitely(notify)
+      locker.with_lock(lockname) do
+        notify.poke
+        sleep
       end
     end
 
-    it 'should delete lock if stale' do
+    it 'raises error after :wait_for_other timeout' do
       begin
-        stale_after = 0
-        reader, writer = IO.pipe
+        child = fork { run_infinitely(@notify) }
 
-        fork do
-          locker.with_lock(lockname) do
-            # Notify that I acquired the lock.
-            reader.close
-            writer.puts()
-            sleep(stale_after+1)
-          end
-        end
+        @notify.wait
 
-        # Wait for notification that child acquired lock.
-        writer.close
-        reader.gets
+        expect {
+          locker.with_lock(lockname, wait_for_other: 0, stale_after: 100) { return }
+        }.to raise_error(DynamoDBMutex::LockError)
 
-        locker.with_lock(lockname, stale_after: stale_after, wait_for_other: stale_after+0.5) do
+      ensure
+        Process.kill('QUIT', child)
+      end
+    end
+
+
+    it 'deletes lock if stale' do
+      begin
+        child = fork { run_infinitely(@notify) }
+
+        @notify.wait
+
+        locker.with_lock(lockname, stale_after: 0, wait_for_other: 100) do
           expect(locker).to receive(:delete).with(lockname)
         end
 
       ensure
-        Process.waitall
+        Process.kill('QUIT', child)
       end
     end
 
