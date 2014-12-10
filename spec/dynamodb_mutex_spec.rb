@@ -7,10 +7,9 @@ describe DynamoDBMutex::Lock do
 
   describe '#with_lock' do
 
-    def run(id, ms)
-      print "invoked worker #{id}...\n"
-      locker.with_lock 'test.lock' do
-        sleep(ms)
+    def run(id, seconds)
+      locker.with_lock(lockname) do
+        sleep(seconds)
       end
     end
 
