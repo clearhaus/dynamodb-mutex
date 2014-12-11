@@ -1,6 +1,22 @@
 DynamoDB Mutex
 ==============
 
+.. image:: https://travis-ci.org/clearhaus/dynamodb-mutex.svg?branch=master
+    :alt: Build Status
+    :target: https://travis-ci.org/clearhaus/dynamodb-mutex
+
+.. image:: https://codeclimate.com/github/clearhaus/dynamodb-mutex/badges/gpa.svg
+    :alt: Code Climate
+    :target: https://codeclimate.com/github/clearhaus/dynamodb-mutex
+
+.. image:: https://gemnasium.com/clearhaus/dynamodb-mutex.svg
+    :alt: Dependency Status
+    :target: https://gemnasium.com/clearhaus/dynamodb-mutex
+
+.. image:: http://img.shields.io/license/MIT.png?color=green
+    :alt: MIT License
+    :target: http://opensource.org/licenses/MIT
+
 Using DynamoDB, it implements a simple semaphore that can be used to coordinate
 access to shared data from multiple concurrent hosts or processes.
 
