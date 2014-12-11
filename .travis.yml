@@ -5,5 +5,7 @@ env:
   AWS_SECRET_ACCESS_KEY=xxx
 rvm:
   - 1.9.3
+  - 2.0.0
   - 2.1.2
+cache: bundler
 script: 'bundle exec rspec'
