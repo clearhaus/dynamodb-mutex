@@ -14,7 +14,9 @@ AWS.config(:use_ssl => false,
 require 'dynamodb-mutex'
 
 RSpec.configure do |config|
-  DynamoDBMutex::Lock.logger = Logger.new(StringIO.new, 1024*1024, 10)
+  log_stream = ENV['DEBUG'] =~ (/^(true|t|yes|y|1)$/i) ? STDERR : StringIO.new
+
+  DynamoDBMutex::Lock.logger = Logger.new(log_stream)
 
   dynamo_thread = nil
 
@@ -23,7 +25,7 @@ RSpec.configure do |config|
     FakeDynamo::Storage.instance.load_aof
 
     dynamo_thread = Thread.new do
-      $stdout = StringIO.new
+      $stdout = log_stream # Throw FakeDynamo's stdout logging somewhere else.
       FakeDynamo::Server.run!(port: 4567, bind: 'localhost') do |server|
         if server.respond_to?('config') && server.config.respond_to?('[]=')
           server.config[:AccessLog] = []
