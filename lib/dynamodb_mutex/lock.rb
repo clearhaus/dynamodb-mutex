@@ -11,6 +11,9 @@ module DynamoDBMutex
 
     TABLE_NAME = 'dynamodb-mutex'
 
+    # May raise
+    #   DynamoDBMutex::LockError
+    #   Timeout::Error
     def with_lock name = 'default.lock', opts = {}
       opts[:stale_after]      ||= 10  # seconds
       opts[:wait_for_other]   ||= 1   # seconds
