@@ -34,7 +34,12 @@ module DynamoDBMutex
         acquire_timeout = Time.now.to_i + opts[:wait_for_other]
 
         while Time.now.to_i < acquire_timeout
-          delete(name) if stale?(name, opts[:stale_after])
+          logger.info "#{pid} checking if #{name} is stale"
+          if stale?(name, opts[:stale_after])
+            logger.info "#{pid} deleting #{name} because it is stale"
+            delete(name)
+          end
+
           begin
             table.items.put({:id => name, :created => Time.now.to_i},
               :unless_exists => :id)
