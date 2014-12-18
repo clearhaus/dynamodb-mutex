@@ -63,7 +63,7 @@ module DynamoDBMutex
       def pid
         @hostname ||= Socket.gethostname
 
-        "#{@hostname}-#{Process.pid}"
+        "#{@hostname}-#{Process.pid}-#{Thread.current.object_id}"
       end
 
       def stale?(name, ttl)
