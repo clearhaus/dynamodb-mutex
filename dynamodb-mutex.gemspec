@@ -23,6 +23,6 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency('fake_dynamo', ["0.1.3"])
 
   # ensure the gem is built out of versioned files
-  gem.files = Dir['Rakefile', '{bin,lib,man,test,spec}/**/*', 'README*', 'LICENSE*'] & `git ls-files -z`.split("\0")
+  gem.files = Dir['Rakefile', '{lib,spec}/**/*', 'README*', 'LICENSE*']
 
 end
