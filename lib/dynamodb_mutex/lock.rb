@@ -1,4 +1,4 @@
-require 'aws-sdk'
+require 'aws-sdk-v1'
 require_relative 'logging'
 
 module DynamoDBMutex

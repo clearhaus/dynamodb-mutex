@@ -2,7 +2,7 @@ require 'rubygems'
 require 'bundler/setup'
 require 'rspec'
 require 'fake_dynamo'
-require 'aws-sdk'
+require 'aws-sdk-v1'
 
 AWS.config(:use_ssl => false,
            :dynamo_db_endpoint => 'localhost',

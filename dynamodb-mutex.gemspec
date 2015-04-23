@@ -15,7 +15,7 @@ Gem::Specification.new do |gem|
   gem.email    = 'dy@clearhaus.com'
   gem.homepage = 'http://github.com/clearhaus/dynamodb-mutex'
 
-  gem.add_dependency('aws-sdk')
+  gem.add_dependency('aws-sdk-v1')
 
   gem.add_development_dependency('rspec', [">= 2.0.0"])
   gem.add_development_dependency('rspec-mocks')
