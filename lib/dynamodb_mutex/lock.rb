@@ -102,10 +102,10 @@ module DynamoDBMutex
             key_schema: [
               { attribute_name: 'id', key_type: 'HASH' }
             ],
-            provisioned_throughput: [
+            provisioned_throughput: {
               read_capacity_units: 5,
               write_capacity_units: 5
-            ]
+            }
           )
           logger.info "Waiting for table #{TABLE_NAME} to be created."
           begin
