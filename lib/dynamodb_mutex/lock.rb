@@ -45,7 +45,7 @@ module DynamoDBMutex
           begin
             dynamodb_client.put_item(
               table_name: TABLE_NAME,
-              item: { :id => name, :created => Time.now.to_i.to_s },
+              item: { :id => name, :created => Time.now.to_i },
               condition_expression: 'attribute_not_exists(id)'
             )
             logger.info "#{pid} acquired #{name}"
