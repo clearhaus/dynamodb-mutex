@@ -20,7 +20,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency('rspec', [">= 2.0.0"])
   gem.add_development_dependency('rspec-mocks')
   gem.add_development_dependency('rake')
-  gem.add_development_dependency('fake_dynamo', ["0.1.3"])
+  gem.add_development_dependency('fake_dynamo', ["0.2.5"])
 
   # ensure the gem is built out of versioned files
   gem.files = Dir['Rakefile', '{lib,spec}/**/*', 'README*', 'LICENSE*']

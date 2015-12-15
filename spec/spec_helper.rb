@@ -22,7 +22,8 @@ RSpec.configure do |config|
   dynamo_thread = nil
 
   config.before(:suite) do
-    FakeDynamo::Storage.db_path = 'test.fdb'
+    FakeDynamo::Logger.setup(:debug)
+    FakeDynamo::Storage.instance.init_db('test.fdb')
     FakeDynamo::Storage.instance.load_aof
 
     dynamo_thread = Thread.new do
