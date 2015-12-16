@@ -1,9 +1,9 @@
 DynamoDB Mutex
 ==============
 
-.. image:: https://travis-ci.org/clearhaus/dynamodb-mutex.svg?branch=master
+.. image:: https://circleci.com/gh/clearhaus/dynamodb-mutex.svg?style=shield
     :alt: Build Status
-    :target: https://travis-ci.org/clearhaus/dynamodb-mutex
+    :target: https://circleci.com/gh/clearhaus/dynamodb-mutex
 
 .. image:: https://codeclimate.com/github/clearhaus/dynamodb-mutex/badges/gpa.svg
     :alt: Code Climate
