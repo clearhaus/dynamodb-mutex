@@ -2,14 +2,15 @@ require 'rubygems'
 require 'bundler/setup'
 require 'rspec'
 require 'fake_dynamo'
-require 'aws-sdk-v1'
+require 'aws-sdk'
 
-AWS.config(:use_ssl => false,
-           :dynamo_db_endpoint => 'localhost',
-           :dynamo_db_port => 4567,
-           :access_key_id => 'foo',
-           :secret_access_key => 'bar',
-          )
+Aws.config.update({
+  credentials: Aws::Credentials.new(
+    'your_access_key_id',
+    'your_secret_access_key'
+  ),
+  endpoint: 'http://localhost:4567'
+})
 
 require 'dynamodb-mutex'
 
@@ -21,7 +22,8 @@ RSpec.configure do |config|
   dynamo_thread = nil
 
   config.before(:suite) do
-    FakeDynamo::Storage.db_path = 'test.fdb'
+    FakeDynamo::Logger.setup(:debug)
+    FakeDynamo::Storage.instance.init_db('test.fdb')
     FakeDynamo::Storage.instance.load_aof
 
     dynamo_thread = Thread.new do
