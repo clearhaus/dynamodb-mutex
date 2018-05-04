@@ -8,17 +8,17 @@ jobs:
         AWS_ACCESS_KEY_ID: xxx
         AWS_SECRET_ACCESS_KEY: xxx
       steps:
-        run:
-          name: Install Java
-          command: |
-            export DEBIAN_FRONTEND=noninteractive
-            apt-get update
-            apt-get install -y --no-install-recommends openjdk-7-jre-headless
-            bundle install
-        run:
-          name: Execute specs
-          command: |
-            bundle exec rspec
+        - run:
+            name: Install Java
+            command: |
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get update
+              apt-get install -y --no-install-recommends openjdk-7-jre-headless
+              bundle install
+        - run:
+            name: Execute specs
+            command: |
+              bundle exec rspec
 
 workflows:
   version: 2
