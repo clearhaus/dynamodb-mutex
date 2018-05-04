@@ -3,8 +3,6 @@ require 'bundler/setup'
 require 'rspec'
 require 'fake_dynamo'
 
-require 'process'
-
 require 'aws-sdk-dynamodb'
 
 Aws.config.update({
