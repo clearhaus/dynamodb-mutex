@@ -8,10 +8,7 @@ jobs:
       AWS_ACCESS_KEY_ID: xxx
       AWS_SECRET_ACCESS_KEY: xxx
     steps:
-      - run:
-        name: Setup code
-        command: |
-          git clone https://github.com/clearhaus/dynamodb-mutex .
+      - checkout
       - run:
           name: Install Java
           command: |
