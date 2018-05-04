@@ -2,7 +2,8 @@ require 'rubygems'
 require 'bundler/setup'
 require 'rspec'
 require 'fake_dynamo'
-require 'aws-sdk'
+
+require 'aws-sdk-dynamodb'
 
 Aws.config.update({
   credentials: Aws::Credentials.new(

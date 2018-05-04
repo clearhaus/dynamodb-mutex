@@ -1,4 +1,5 @@
-require 'aws-sdk'
+require 'aws-sdk-dynamodb'
+
 require 'socket'
 require_relative 'logging'
 
