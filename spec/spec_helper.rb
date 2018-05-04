@@ -1,7 +1,6 @@
 require 'rubygems'
 require 'bundler/setup'
 require 'rspec'
-require 'fake_dynamo'
 
 require 'aws-sdk-dynamodb'
 
@@ -22,17 +21,18 @@ RSpec.configure do |config|
 
   dynamo_pid = nil
 
-  config.before(:suite) do
+  config.before(:all) do
     dynamo_pid = Process.fork do
       Dir.chdir('resources')
-      `java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -inMemory -port 4567`
+      exec('java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -inMemory -port 4567')
     end
 
     sleep 1
   end
 
-  config.after(:suite) do
-    Process.kill("INT", dynamo_pid) if dynamo_pid
+  config.after(:all) do
+    sleep 0.5
+    Process.kill('INT', dynamo_pid) if dynamo_pid
+    Process.waitpid(dynamo_pid)
   end
-
 end
