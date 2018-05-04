@@ -15,11 +15,19 @@ jobs:
             export DEBIAN_FRONTEND=noninteractive
             apt-get update
             apt-get install -y --no-install-recommends openjdk-7-jre-headless
-            bundle install
+      - run:
+        name: Fetch and unpack local DynamoDB
+        command: |
+          wget https://s3.eu-central-1.amazonaws.com/dynamodb-local-frankfurt/dynamodb_local_latest.tar.gz \
+               -O /tmp/dynamodb_local_latest.tar.gz
+          mkdir resources
+          tar -xf /tmp/dynamodb_local_latest.tar.gz -C resources
+      - run:
+          name: Install bundles
+          command: bundle install
       - run:
           name: Execute specs
-          command: |
-            bundle exec rspec
+          command: bundle exec rspec
 
 workflows:
   version: 2

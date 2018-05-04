@@ -3,6 +3,8 @@ require 'bundler/setup'
 require 'rspec'
 require 'fake_dynamo'
 
+require 'process'
+
 require 'aws-sdk-dynamodb'
 
 Aws.config.update({
@@ -20,28 +22,19 @@ RSpec.configure do |config|
 
   DynamoDBMutex::Lock.logger = Logger.new(log_stream)
 
-  dynamo_thread = nil
+  dynamo_pid = nil
 
   config.before(:suite) do
-    FakeDynamo::Logger.setup(:debug)
-    FakeDynamo::Storage.instance.init_db('test.fdb')
-    FakeDynamo::Storage.instance.load_aof
-
-    dynamo_thread = Thread.new do
-      $stdout = log_stream # Throw FakeDynamo's stdout logging somewhere else.
-      FakeDynamo::Server.run!(port: 4567, bind: 'localhost') do |server|
-        if server.respond_to?('config') && server.config.respond_to?('[]=')
-          server.config[:AccessLog] = []
-        end
-      end
+    dynamo_pid = Process.fork do
+      Dir.chdir('resources')
+      `java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -inMemory -port 4567`
     end
-    sleep(1)
+
+    sleep 1
   end
 
   config.after(:suite) do
-    FakeDynamo::Storage.instance.shutdown
-    dynamo_thread.exit if dynamo_thread
-    FileUtils.rm('test.fdb', force: true)
+    Process.kill("INT", dynamo_pid) if dynamo_pid
   end
 
 end
