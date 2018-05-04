@@ -8,6 +8,7 @@ jobs:
       AWS_ACCESS_KEY_ID: xxx
       AWS_SECRET_ACCESS_KEY: xxx
     steps:
+      - checkout
       - run:
           name: Install Java
           command: |
