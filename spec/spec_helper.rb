@@ -27,7 +27,7 @@ RSpec.configure do |config|
       exec('java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -inMemory -port 4567')
     end
 
-    sleep 1
+    sleep 2
   end
 
   config.after(:all) do

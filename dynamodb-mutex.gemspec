@@ -18,8 +18,6 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency('aws-sdk-dynamodb')
 
-  gem.add_development_dependency('fake_dynamo')
-
   gem.add_development_dependency('rake')
   gem.add_development_dependency('rspec', ['>= 2.0.0'])
   gem.add_development_dependency('rspec-mocks')
