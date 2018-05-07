@@ -2,6 +2,8 @@ require 'rubygems'
 require 'bundler/setup'
 require 'rspec'
 
+require 'English'
+
 require 'aws-sdk-dynamodb'
 
 Aws.config.update({
@@ -12,6 +14,10 @@ Aws.config.update({
   endpoint: 'http://localhost:4567'
 })
 
+AMAZON_LOCAL_DYNAMODB_URL =
+  'https://s3.eu-central-1.amazonaws.com/dynamodb-local-frankfurt/dynamodb_local_latest.tar.gz'.freeze
+DYNAMODB_JAR_DIR = 'resources'.freeze
+DYNAMODB_TMP_PATH = '/tmp/dynamodb_local_latest.tar.gz'.freeze
 require 'dynamodb-mutex'
 
 RSpec.configure do |config|
@@ -22,8 +28,20 @@ RSpec.configure do |config|
   dynamo_pid = nil
 
   config.before(:all) do
+    # Download Amazons local DynamoDB and use that as an endpoint for specs.
+
+    Dir.mkdir(DYNAMODB_JAR_DIR) unless Dir.exist?(DYNAMODB_JAR_DIR)
+
+    unless File.exist?("./#{DYNAMODB_JAR_DIR}/DynamoDBLocal.jar")
+      raise "Error downloading #{AMAZON_LOCAL_DYNAMODB_URL}" unless \
+        system("wget #{AMAZON_LOCAL_DYNAMODB_URL} -O #{DYNAMODB_TMP_PATH} -q")
+
+      raise "Error unpacking #{DYNAMODB_TMP_PATH}" unless \
+        system("tar -xf #{DYNAMODB_TMP_PATH} -C #{DYNAMODB_JAR_DIR}")
+    end
+
     dynamo_pid = Process.fork do
-      Dir.chdir('resources')
+      Dir.chdir(DYNAMODB_JAR_DIR)
       $stdout.reopen('/dev/null', 'w')
 
       exec('java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -inMemory -port 4567')
