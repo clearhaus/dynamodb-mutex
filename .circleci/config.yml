@@ -20,9 +20,3 @@ jobs:
       - run:
           name: Execute specs
           command: bundle exec rspec
-
-workflows:
-  version: 2
-  rspec:
-    jobs:
-      - build
