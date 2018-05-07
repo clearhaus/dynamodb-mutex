@@ -24,6 +24,8 @@ RSpec.configure do |config|
   config.before(:all) do
     dynamo_pid = Process.fork do
       Dir.chdir('resources')
+      $stdout.reopen('/dev/null', 'w')
+
       exec('java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -inMemory -port 4567')
     end
 
