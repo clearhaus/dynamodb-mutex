@@ -12,7 +12,6 @@ jobs:
       - run:
           name: Install Java
           command: |
-            export DEBIAN_FRONTEND=noninteractive
             apt-get update
             apt-get install -y --no-install-recommends openjdk-7-jre-headless
       - run:
