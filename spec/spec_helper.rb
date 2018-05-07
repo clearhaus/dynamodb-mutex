@@ -20,8 +20,27 @@ AMAZON_LOCAL_DYNAMODB_URL =
 DYNAMODB_JAR_DIR = 'resources'.freeze
 DYNAMODB_TMP_PATH = '/tmp/dynamodb_local_latest.tar.gz'.freeze
 
+def fetch_amazon_dynamodb_local
+  Dir.mkdir(DYNAMODB_JAR_DIR) unless Dir.exist?(DYNAMODB_JAR_DIR)
+
+  return if File.exist?("./#{DYNAMODB_JAR_DIR}/DynamoDBLocal.jar")
+
+  raise "Error downloading #{AMAZON_LOCAL_DYNAMODB_URL}" unless \
+    system("wget #{AMAZON_LOCAL_DYNAMODB_URL} -O #{DYNAMODB_TMP_PATH} -q")
+
+  raise "Error unpacking #{DYNAMODB_TMP_PATH}" unless \
+    system("tar -xf #{DYNAMODB_TMP_PATH} -C #{DYNAMODB_JAR_DIR}")
+end
+
+def spawn_dynamodb
+  Dir.chdir(DYNAMODB_JAR_DIR)
+  $stdout.reopen('/dev/null', 'w')
+
+  exec('java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -inMemory -port 4567')
+end
+
 RSpec.configure do |config|
-  log_stream = ENV['DEBUG'] =~ (/^(true|t|yes|y|1)$/i) ? STDERR : StringIO.new
+  log_stream = ENV['DEBUG'] =~ /^(true|t|yes|y|1)$/i ? STDERR : StringIO.new
 
   DynamoDBMutex::Lock.logger = Logger.new(log_stream)
 
@@ -29,43 +48,15 @@ RSpec.configure do |config|
 
   config.before(:suite) do
     # Download Amazons local DynamoDB and use that as an endpoint for specs.
-
-    Dir.mkdir(DYNAMODB_JAR_DIR) unless Dir.exist?(DYNAMODB_JAR_DIR)
-
-    unless File.exist?("./#{DYNAMODB_JAR_DIR}/DynamoDBLocal.jar")
-      raise "Error downloading #{AMAZON_LOCAL_DYNAMODB_URL}" unless \
-        system("wget #{AMAZON_LOCAL_DYNAMODB_URL} -O #{DYNAMODB_TMP_PATH} -q")
-
-      raise "Error unpacking #{DYNAMODB_TMP_PATH}" unless \
-        system("tar -xf #{DYNAMODB_TMP_PATH} -C #{DYNAMODB_JAR_DIR}")
-    end
+    fetch_amazon_dynamodb_local
 
     dynamo_pid = Process.fork do
-      Dir.chdir(DYNAMODB_JAR_DIR)
-      $stdout.reopen('/dev/null', 'w')
-
-      exec('java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -inMemory -port 4567')
+      spawn_dynamodb
     end
 
-    # Loop until we successfully connect to the DynamoDB
-    # maximal loop waiting time in seconds
-    loop_max_wait = 10
-    loop_count = 0
-    sleep_interval = 0.1
-
-    while loop_count < loop_max_wait / sleep_interval
-      loop_count += 1
-      begin
-        client = Aws::DynamoDB::Client.new
-        client.list_tables
-
-        break
-      rescue
-        sleep sleep_interval
-      end
-    end
-
-    raise 'DynamoDB did not start in time' if loop_count >= loop_max_wait / sleep_interval
+    [0.1, 0.5, 1, 3, 5, 7, 10].lazy.map do |sleep_interval|
+      Aws::DynamoDB::Client.new.list_tables rescue (sleep sleep_interval; false)
+    end.any? || raise('DynamoDB did not start in time')
   end
 
   config.after(:suite) do
