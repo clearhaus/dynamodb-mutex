@@ -1,8 +1,4 @@
-require 'rubygems'
-require 'bundler/setup'
 require 'rspec'
-
-require 'English'
 
 require 'aws-sdk-dynamodb'
 require 'dynamodb-mutex'
