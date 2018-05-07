@@ -12,8 +12,8 @@ Gem::Specification.new do |gem|
                     'used to coordinate access to shared data from multiple ' \
                     'concurrent hosts'
 
-  gem.authors  = ['Dinesh Yadav']
-  gem.email    = 'dy@clearhaus.com'
+  gem.authors  = ['Clearhaus']
+  gem.email    = 'hello@clearhaus.com'
   gem.homepage = 'http://github.com/clearhaus/dynamodb-mutex'
 
   gem.add_dependency('aws-sdk-dynamodb')
