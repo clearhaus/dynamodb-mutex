@@ -69,7 +69,9 @@ RSpec.configure do |config|
   end
 
   config.after(:suite) do
-    Process.kill('INT', dynamo_pid) if dynamo_pid
-    Process.waitpid(dynamo_pid)
+    if dynamo_pid
+      Process.kill('INT', dynamo_pid)
+      Process.waitpid(dynamo_pid)
+    end
   end
 end
