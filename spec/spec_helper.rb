@@ -30,16 +30,23 @@ RSpec.configure do |config|
     end
 
     # Loop until we successfully connect to the DynamoDB
-    loop do
-      begin # rubocop:disable Style/RedundantBegin
+    # maximal loop waiting time in seconds
+    loop_max_wait = 10
+    loop_count = 0
+    sleep_interval = 0.1
+
+    while loop_count < loop_max_wait / sleep_interval
+      begin
         client = Aws::DynamoDB::Client.new
         client.list_tables
 
         break
       rescue
-        sleep 0.1
+        sleep sleep_interval
       end
     end
+
+    raise 'DynamoDB did not start in time' if loop_count >= loop_max_wait / sleep_interval
   end
 
   config.after(:all) do
