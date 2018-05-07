@@ -53,6 +53,7 @@ describe DynamoDBMutex::Lock do
 
       ensure
         Process.kill('QUIT', child)
+        Process.waitpid(child)
       end
     end
 
@@ -69,6 +70,7 @@ describe DynamoDBMutex::Lock do
 
       ensure
         Process.kill('QUIT', child)
+        Process.waitpid(child)
       end
     end
 

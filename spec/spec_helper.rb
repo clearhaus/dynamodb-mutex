@@ -27,11 +27,20 @@ RSpec.configure do |config|
       exec('java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -inMemory -port 4567')
     end
 
-    sleep 2
+    # Loop until we successfully connect to the DynamoDB
+    loop do
+      begin # rubocop:disable Style/RedundantBegin
+        client = Aws::DynamoDB::Client.new
+        client.list_tables
+
+        break
+      rescue
+        sleep 0.1
+      end
+    end
   end
 
   config.after(:all) do
-    sleep 0.5
     Process.kill('INT', dynamo_pid) if dynamo_pid
     Process.waitpid(dynamo_pid)
   end
