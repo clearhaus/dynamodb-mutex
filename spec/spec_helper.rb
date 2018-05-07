@@ -21,11 +21,11 @@ def fetch_amazon_dynamodb_local
 
   return if File.exist?("./#{DYNAMODB_JAR_DIR}/DynamoDBLocal.jar")
 
-  raise "Error downloading #{AMAZON_LOCAL_DYNAMODB_URL}" unless \
-    system("wget #{AMAZON_LOCAL_DYNAMODB_URL} -O #{DYNAMODB_TMP_PATH} -q")
+  system("wget #{AMAZON_LOCAL_DYNAMODB_URL} -O #{DYNAMODB_TMP_PATH} -q") ||
+    raise("Error downloading #{AMAZON_LOCAL_DYNAMODB_URL}")
 
-  raise "Error unpacking #{DYNAMODB_TMP_PATH}" unless \
-    system("tar -xf #{DYNAMODB_TMP_PATH} -C #{DYNAMODB_JAR_DIR}")
+  system("tar -xf #{DYNAMODB_TMP_PATH} -C #{DYNAMODB_JAR_DIR}") ||
+    raise("Error unpacking #{DYNAMODB_TMP_PATH}")
 end
 
 def spawn_dynamodb
