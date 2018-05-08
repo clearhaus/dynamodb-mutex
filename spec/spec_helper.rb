@@ -1,46 +1,64 @@
-require 'rubygems'
-require 'bundler/setup'
 require 'rspec'
-require 'fake_dynamo'
-require 'aws-sdk'
 
-Aws.config.update({
+require 'aws-sdk-dynamodb'
+require 'dynamodb-mutex'
+
+Aws.config.update(
   credentials: Aws::Credentials.new(
     'your_access_key_id',
     'your_secret_access_key'
   ),
   endpoint: 'http://localhost:4567'
-})
+)
 
-require 'dynamodb-mutex'
+AMAZON_LOCAL_DYNAMODB_URL =
+  'https://s3.eu-central-1.amazonaws.com/dynamodb-local-frankfurt/dynamodb_local_latest.tar.gz'.freeze
+DYNAMODB_JAR_DIR = 'resources'.freeze
+DYNAMODB_TMP_PATH = '/tmp/dynamodb_local_latest.tar.gz'.freeze
+
+def fetch_amazon_dynamodb_local
+  Dir.mkdir(DYNAMODB_JAR_DIR) unless Dir.exist?(DYNAMODB_JAR_DIR)
+
+  return if File.exist?("./#{DYNAMODB_JAR_DIR}/DynamoDBLocal.jar")
+
+  system("wget #{AMAZON_LOCAL_DYNAMODB_URL} -O #{DYNAMODB_TMP_PATH} -q") ||
+    raise("Error downloading #{AMAZON_LOCAL_DYNAMODB_URL}")
+
+  system("tar -xf #{DYNAMODB_TMP_PATH} -C #{DYNAMODB_JAR_DIR}") ||
+    raise("Error unpacking #{DYNAMODB_TMP_PATH}")
+end
+
+def spawn_dynamodb
+  Dir.chdir(DYNAMODB_JAR_DIR)
+  $stdout.reopen('/dev/null', 'w')
+
+  exec('java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -inMemory -port 4567')
+end
 
 RSpec.configure do |config|
-  log_stream = ENV['DEBUG'] =~ (/^(true|t|yes|y|1)$/i) ? STDERR : StringIO.new
+  log_stream = ENV['DEBUG'] =~ /^(true|t|yes|y|1)$/i ? STDERR : StringIO.new
 
   DynamoDBMutex::Lock.logger = Logger.new(log_stream)
 
-  dynamo_thread = nil
+  dynamo_pid = nil
 
   config.before(:suite) do
-    FakeDynamo::Logger.setup(:debug)
-    FakeDynamo::Storage.instance.init_db('test.fdb')
-    FakeDynamo::Storage.instance.load_aof
+    # Download Amazons local DynamoDB and use that as an endpoint for specs.
+    fetch_amazon_dynamodb_local
 
-    dynamo_thread = Thread.new do
-      $stdout = log_stream # Throw FakeDynamo's stdout logging somewhere else.
-      FakeDynamo::Server.run!(port: 4567, bind: 'localhost') do |server|
-        if server.respond_to?('config') && server.config.respond_to?('[]=')
-          server.config[:AccessLog] = []
-        end
-      end
+    dynamo_pid = Process.fork do
+      spawn_dynamodb
     end
-    sleep(1)
+
+    [0.1, 0.5, 1, 3, 5, 7, 10].lazy.map do |sleep_interval|
+      Aws::DynamoDB::Client.new.list_tables rescue (sleep sleep_interval; false)
+    end.any? || raise('DynamoDB did not start in time')
   end
 
   config.after(:suite) do
-    FakeDynamo::Storage.instance.shutdown
-    dynamo_thread.exit if dynamo_thread
-    FileUtils.rm('test.fdb', force: true)
+    if dynamo_pid
+      Process.kill('INT', dynamo_pid)
+      Process.waitpid(dynamo_pid)
+    end
   end
-
 end
