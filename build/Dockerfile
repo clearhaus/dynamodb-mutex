@@ -8,7 +8,7 @@ COPY . /tmp
 RUN apt-get update && \
     apt-get upgrade -y --no-install-recommends && \
     apt-get install -y --no-install-recommends \
-        ruby-dev bundler openjdk-17-jre-headless awscli && \
+        ruby-dev bundler openjdk-17-jre-headless && \
     bundle install && \
     apt-get --purge remove -y \
         ruby-dev && \
