@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker run -t dynamodb-mutex bundle exec rspec
+docker run --rm -t dynamodb-mutex bundle exec rspec
