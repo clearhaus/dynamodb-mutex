@@ -1,10 +1,6 @@
 DynamoDB Mutex
 ==============
 
-.. image:: https://circleci.com/gh/clearhaus/dynamodb-mutex.svg?style=shield
-    :alt: Build Status
-    :target: https://circleci.com/gh/clearhaus/dynamodb-mutex
-
 .. image:: https://codeclimate.com/github/clearhaus/dynamodb-mutex/badges/gpa.svg
     :alt: Code Climate
     :target: https://codeclimate.com/github/clearhaus/dynamodb-mutex
