@@ -1,7 +1,5 @@
 FROM debian:bullseye-slim
 
-ENV AWS_DEFAULT_REGION=eu-west-1
-
 WORKDIR /tmp
 COPY . /tmp
 
