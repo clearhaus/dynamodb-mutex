@@ -36,6 +36,8 @@ def spawn_dynamodb
 end
 
 RSpec.configure do |config|
+  ENV['AWS_DEFAULT_REGION'] = 'eu-west-1'
+
   log_stream = ENV['DEBUG'] =~ /^(true|t|yes|y|1)$/i ? STDERR : StringIO.new
 
   DynamoDBMutex::Lock.logger = Logger.new(log_stream)
